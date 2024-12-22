@@ -1,0 +1,18 @@
+version: '3.8'
+services:
+  dev-db:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: task-trader-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+  test-db:
+    image: postgres:latest
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: test-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
