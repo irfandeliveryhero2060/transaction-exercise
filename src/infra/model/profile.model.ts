@@ -1,5 +1,5 @@
 import { Column, Model, Table, HasMany } from 'sequelize-typescript';
-import { Job } from './job.model';  // Ensure correct import path for the Job model
+import { Contract } from 'src/infra/model/contract.model'; // Ensure the correct path
 
 @Table({
   timestamps: false, // Disable auto-handling of createdAt and updatedAt
@@ -20,10 +20,7 @@ export class Profile extends Model {
   @Column
   type: string;
 
-  // Explicitly define the type of clientJobs and contractorJobs
-  @HasMany(() => Job, { foreignKey: 'ClientId' })
-  clientJobs: Job[];
-
-  @HasMany(() => Job, { foreignKey: 'ContractorId' })
-  contractorJobs: Job[];
+  // Define the one-to-many relationship: Profile can have many Contracts
+  @HasMany(() => Contract)
+  contracts: Contract[]; // This allows you to access the contracts for a profile
 }

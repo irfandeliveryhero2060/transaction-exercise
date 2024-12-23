@@ -6,6 +6,7 @@ import { Contract } from 'src/infra/model/contract.model';
 
 @Injectable()
 export class AdminService {
+
   async getBestProfession(start: string, end: string): Promise<any> {
     const jobs = await Job.findAll({
       where: {
@@ -14,13 +15,22 @@ export class AdminService {
       include: [
         {
           model: Contract,
-          include: [Profile],  // Ensure that Profile is included for both Client and Contractor
+          include: [
+            {
+              model: Profile,
+              as: 'client',  // Alias for the Client relationship
+            },
+            {
+              model: Profile,
+              as: 'contractor',  // Alias for the Contractor relationship
+            },
+          ],
         },
       ],
     });
 
     const professionEarnings = jobs.reduce((acc, job) => {
-      const profession = job.contract.contractor.profession;  // Access the profession via contractor
+      const profession = job.contract.contractor.profession;  // Access the contractor's profession
       if (!acc[profession]) {
         acc[profession] = 0;
       }
@@ -33,7 +43,11 @@ export class AdminService {
       [0];
   }
 
-  async getBestClients(start: string, end: string, limit: number): Promise<any> {
+  async getBestClients(
+    start: string,
+    end: string,
+    limit: number,
+  ): Promise<any> {
     const jobs = await Job.findAll({
       where: {
         paymentDate: { [Op.gte]: new Date(start), [Op.lte]: new Date(end) },
@@ -42,7 +56,12 @@ export class AdminService {
       include: [
         {
           model: Contract,
-          include: [Profile],  // Include Profile to access the ClientId
+          include: [
+            {
+              model: Profile,
+              as: 'client',  // Alias for the Client relationship
+            },
+          ],
         },
       ],
     });

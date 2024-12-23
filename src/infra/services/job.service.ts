@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { Job } from '../model/job.model';
 import { Profile } from '../model/profile.model';
 import { InjectModel } from '@nestjs/sequelize';
+import { Contract } from "src/infra/model/contract.model";
+import { Op } from "sequelize";
 
 @Injectable()
 export class JobsService {
@@ -12,7 +14,11 @@ export class JobsService {
 
   async getUnpaidJobs(userId: number): Promise<Job[]> {
     return this.jobModel.findAll({
-      where: { paid: false, Contract: { ClientId: userId } },
+      where: { paid: false },
+      include: [{
+          model: Contract,
+          where: { ClientId: userId, status: { [Op.ne]: 'terminated' } }, // Filtering the Contract model's ClientId field
+      }],
     });
   }
 

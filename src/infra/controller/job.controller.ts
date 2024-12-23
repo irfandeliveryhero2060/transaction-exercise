@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body,  Request } from "@nestjs/common";
 import { JobsService } from '../services/job.service';
 
 @Controller('jobs')
@@ -7,12 +7,14 @@ export class JobsController {
 
   //TODO: Read from profile
   @Get('unpaid')
-  async getUnpaidJobs() {
-    return this.jobsService.getUnpaidJobs(234);
+  async getUnpaidJobs(@Request() req) {
+    const userProfile = req.profile;
+    return this.jobsService.getUnpaidJobs(userProfile.id);
   }
 
   @Post(':job_id/pay')
-  async payJob(@Param('job_id') jobId: number, @Body() paymentDto: { amount: number }) {
-    return this.jobsService.payForJob(jobId, paymentDto.amount, 123);
+  async payJob(@Request() req,@Param('job_id') jobId: number, @Body() paymentDto: { amount: number }) {
+    const userProfile = req.profile;
+    return this.jobsService.payForJob(jobId, paymentDto.amount, userProfile.id);
   }
 }

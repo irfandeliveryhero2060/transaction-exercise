@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Request, UseGuards } from '@nestjs/common';
 import { ContractsService } from '../services/contract.service';
 import { ContractOwnerGuard } from 'src/infra/guards/contract.own.gaurd';
 
@@ -13,8 +13,8 @@ export class ContractsController {
   }
 
   @Get()
-  @UseGuards(ContractOwnerGuard)
-  async getUserContracts(@Query() query: any) {
-    return this.contractsService.getUserContracts(query);
+  async getUserContracts(@Request() req) {
+    const userProfile = req.profile;
+    return this.contractsService.getUserContracts(userProfile.id);
   }
 }

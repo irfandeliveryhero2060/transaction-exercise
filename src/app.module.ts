@@ -46,5 +46,6 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     // Apply middleware to all routes or specific ones
     consumer.apply(GetProfileMiddleware).forRoutes(ContractsController);
+    consumer.apply(GetProfileMiddleware).forRoutes(JobsController);
   }
 }
