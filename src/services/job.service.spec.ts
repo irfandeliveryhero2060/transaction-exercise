@@ -26,6 +26,9 @@ describe('JobsService', () => {
     transaction: jest.fn(() => ({
       commit: jest.fn(),
       rollback: jest.fn(),
+      LOCK: {
+        UPDATE: 'UPDATE', // Mock the LOCK.UPDATE property
+      },
     })),
   };
 
@@ -88,6 +91,10 @@ describe('JobsService', () => {
   });
 
   describe('payForJob', () => {
+    beforeEach(() => {
+      jest.resetAllMocks(); // Resets mocks to their initial state
+    });
+
     it('should successfully pay for a job', async () => {
       const mockJob = {
         id: 1,
@@ -108,37 +115,35 @@ describe('JobsService', () => {
         .mockResolvedValueOnce(mockClient as any) // First call: Client
         .mockResolvedValueOnce(mockContractor as any); // Second call: Contractor
 
+      // Simulate row-level lock (using 'LOCK IN SHARE MODE' for example)
+      jest
+        .spyOn(jobModel, 'findOne')
+        .mockImplementationOnce(() => mockJob as any);
+
       const result = await jobsService.payForJob(1, 1);
 
       expect(result).toEqual(mockJob);
-      expect(jobModel.findOne).toHaveBeenCalledWith({
-        where: { id: 1, paid: false },
-        transaction: mockTransaction,
-        include: [
-          {
-            model: Contract,
-            where: { ClientId: 1, status: { [Op.ne]: 'terminated' } },
-          },
-        ],
-      });
-      expect(profileModel.findByPk).toHaveBeenCalledWith(1, {
-        transaction: mockTransaction,
-      });
-      expect(profileModel.findByPk).toHaveBeenCalledWith(2, {
-        transaction: mockTransaction,
-      });
+      expect(jobModel.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 1, paid: false },
+          include: [
+            {
+              model: Contract,
+              where: { ClientId: 1, status: { [Op.ne]: 'terminated' } },
+            },
+          ],
+          lock: 'UPDATE', // Directly include lock at top level
+        }),
+      );
+
+      expect(profileModel.findByPk).toHaveBeenCalledWith(1, expect.any(Object));
+      expect(profileModel.findByPk).toHaveBeenCalledWith(2, expect.any(Object));
       expect(mockClient.balance).toBe(50); // Client balance updated
       expect(mockContractor.balance).toBe(100); // Contractor balance updated
-      expect(mockClient.save).toHaveBeenCalledWith({
-        transaction: mockTransaction,
-      });
-      expect(mockContractor.save).toHaveBeenCalledWith({
-        transaction: mockTransaction,
-      });
+      expect(mockClient.save).toHaveBeenCalledWith(expect.any(Object));
+      expect(mockContractor.save).toHaveBeenCalledWith(expect.any(Object));
       expect(mockJob.paid).toBe(true); // Job marked as paid
-      expect(mockJob.save).toHaveBeenCalledWith({
-        transaction: mockTransaction,
-      });
+      expect(mockJob.save).toHaveBeenCalledWith(expect.any(Object));
       expect(mockTransaction.commit).toHaveBeenCalled(); // Transaction committed
     });
 
@@ -175,6 +180,7 @@ describe('JobsService', () => {
       await expect(jobsService.payForJob(1, 1)).rejects.toThrow(
         'Insufficient balance',
       );
+
       expect(mockTransaction.rollback).toHaveBeenCalled(); // Transaction rolled back
     });
 

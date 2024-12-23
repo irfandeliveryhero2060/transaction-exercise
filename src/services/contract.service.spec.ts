@@ -8,7 +8,6 @@ import { Op } from 'sequelize';
 describe('ContractsService', () => {
   let contractsService: ContractsService;
   let contractModel: typeof Contract;
-  let profileModel: typeof Profile;
 
   // Mock data
   const mockContract = {
@@ -48,7 +47,6 @@ describe('ContractsService', () => {
 
     contractsService = module.get<ContractsService>(ContractsService);
     contractModel = module.get<typeof Contract>(getModelToken(Contract));
-    profileModel = module.get<typeof Profile>(getModelToken(Profile));
   });
 
   it('should be defined', () => {

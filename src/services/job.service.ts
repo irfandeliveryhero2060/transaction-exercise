@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Job } from '../model/job.model';
 import { Profile } from '..//model/profile.model';
 import { InjectModel } from '@nestjs/sequelize';
@@ -47,8 +47,9 @@ export class JobsService {
             },
           },
         ],
+        lock: transaction.LOCK.UPDATE, // Locking the job and contract rows
       });
-      // const job = await this.jobModel.findByPk(jobId, { transaction });
+
       if (!job) {
         throw new HttpException(
           'Job not found or does not belong to the user',
@@ -56,27 +57,25 @@ export class JobsService {
         );
       }
 
-      // Fetch the client and contractor profiles within the transaction
-      const client = await this.profileModel.findByPk(userId, { transaction });
+      // Fetch the client profile within the transaction and lock the row
+      const client = await this.profileModel.findByPk(userId, {
+        transaction,
+        lock: transaction.LOCK.UPDATE, // Locking the client row
+      });
       if (!client) {
-        throw new HttpException(
-          'Client not found',
-          HttpStatus.NOT_FOUND,
-        );
+        throw new HttpException('Client not found', HttpStatus.NOT_FOUND);
       }
 
       if (client.balance < job.price) {
-        throw new HttpException(
-          'Insufficient balance',
-          HttpStatus.BAD_REQUEST,
-        );
+        throw new HttpException('Insufficient balance', HttpStatus.BAD_REQUEST);
       }
 
-      // Get the contractor profile based on ContractId (using job.ContractId)
+      // Fetch the contractor profile based on ContractId and lock the row
       const contractor = await this.profileModel.findByPk(
         job.contract.ContractorId,
         {
           transaction,
+          lock: transaction.LOCK.UPDATE, // Locking the contractor row
         },
       );
 

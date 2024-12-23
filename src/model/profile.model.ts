@@ -14,7 +14,11 @@ export class Profile extends Model {
   @Column
   profession: string;
 
-  @Column
+  @Column({
+    validate: {
+      min: 0, // Ensures the balance is not negative
+    },
+  })
   balance: number;
 
   @Column
