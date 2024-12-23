@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { Job } from 'src/model/job.model';
-import { Profile } from 'src/model/profile.model';
+import { Job } from '../model/job.model';
+import { Profile } from '..//model/profile.model';
 import { InjectModel } from '@nestjs/sequelize';
-import { Contract } from 'src/model/contract.model';
+import { Contract } from '../model/contract.model';
 import { Op } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 
@@ -17,10 +17,12 @@ export class JobsService {
   async getUnpaidJobs(userId: number): Promise<Job[]> {
     return this.jobModel.findAll({
       where: { paid: false },
-      include: [{
+      include: [
+        {
           model: Contract,
           where: { ClientId: userId, status: { [Op.ne]: 'terminated' } }, // Filtering the Contract model's ClientId field
-      }],
+        },
+      ],
     });
   }
 
@@ -46,7 +48,9 @@ export class JobsService {
       }
 
       // Get the contractor profile based on ContractId (using job.ContractId)
-      const contractor = await this.profileModel.findByPk(job.ContractId, { transaction });
+      const contractor = await this.profileModel.findByPk(job.ContractId, {
+        transaction,
+      });
       if (!contractor) {
         throw new Error('Contractor not found');
       }

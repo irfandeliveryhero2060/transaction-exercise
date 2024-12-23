@@ -10,7 +10,7 @@ import { Op } from 'sequelize';
 export class BalancesService {
   constructor(
     @InjectModel(Profile) private profileModel: typeof Profile,
-    private sequelize: Sequelize,  // Inject Sequelize for transactions
+    private sequelize: Sequelize, // Inject Sequelize for transactions
   ) {}
 
   async depositBalance(userId: number, amount: number): Promise<Profile> {

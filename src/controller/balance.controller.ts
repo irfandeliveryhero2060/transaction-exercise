@@ -6,7 +6,10 @@ export class BalancesController {
   constructor(private readonly balancesService: BalancesService) {}
 
   @Post('deposit/:userId')
-  async depositBalance(@Param('userId') userId: number, @Body() depositDto: { amount: number }) {
+  async depositBalance(
+    @Param('userId') userId: number,
+    @Body() depositDto: { amount: number },
+  ) {
     return this.balancesService.depositBalance(userId, depositDto.amount);
   }
 }

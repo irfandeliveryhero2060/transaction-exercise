@@ -1,6 +1,13 @@
-import { Column, ForeignKey, Model, Table, BelongsTo, HasMany } from "sequelize-typescript";
-import { Profile } from 'src/model/profile.model';
-import { Job } from 'src/model/job.model';
+import {
+  Column,
+  ForeignKey,
+  Model,
+  Table,
+  BelongsTo,
+  HasMany,
+} from 'sequelize-typescript';
+import { Profile } from './profile.model';
+import { Job } from './job.model';
 
 @Table({
   timestamps: false, // Disable auto-handling of createdAt and updatedAt

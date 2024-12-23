@@ -46,7 +46,6 @@ import { Job } from 'src/model/job.model';
     BalancesService,
   ],
 })
-
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     // Apply middleware to all routes or specific ones

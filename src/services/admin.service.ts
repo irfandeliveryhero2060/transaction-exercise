@@ -1,14 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { Job } from 'src/model/job.model';
-import { Profile } from 'src/model/profile.model';
+import { Job } from '../model/job.model';
+import { Profile } from '../model/profile.model';
 import { Op } from 'sequelize';
-import { Contract } from 'src/model/contract.model';
+import { Contract } from '../model/contract.model';
+import { InjectModel } from '@nestjs/sequelize';
 
 @Injectable()
 export class AdminService {
+  constructor(@InjectModel(Job) private jobModel: typeof Job) {}
 
   async getBestProfession(start: string, end: string): Promise<any> {
-    const jobs = await Job.findAll({
+    const jobs = await this.jobModel.findAll({
       where: {
         paymentDate: { [Op.gte]: new Date(start), [Op.lte]: new Date(end) },
       },
@@ -18,11 +20,11 @@ export class AdminService {
           include: [
             {
               model: Profile,
-              as: 'client',  // Alias for the Client relationship
+              as: 'client', // Alias for the Client relationship
             },
             {
               model: Profile,
-              as: 'contractor',  // Alias for the Contractor relationship
+              as: 'contractor', // Alias for the Contractor relationship
             },
           ],
         },
@@ -30,7 +32,7 @@ export class AdminService {
     });
 
     const professionEarnings = jobs.reduce((acc, job) => {
-      const profession = job.contract.contractor.profession;  // Access the contractor's profession
+      const profession = job.contract.contractor.profession; // Access the contractor's profession
       if (!acc[profession]) {
         acc[profession] = 0;
       }
@@ -38,9 +40,9 @@ export class AdminService {
       return acc;
     }, {});
 
-    return Object.entries(professionEarnings)
-      .sort(([, a], [, b]) => Number(b) - Number(a))  // Explicitly cast a and b to numbers
-      [0];
+    return Object.entries(professionEarnings).sort(
+      ([, a], [, b]) => Number(b) - Number(a),
+    )[0]; // Explicitly cast a and b to numbers
   }
 
   async getBestClients(
@@ -48,7 +50,7 @@ export class AdminService {
     end: string,
     limit: number,
   ): Promise<any> {
-    const jobs = await Job.findAll({
+    const jobs = await this.jobModel.findAll({
       where: {
         paymentDate: { [Op.gte]: new Date(start), [Op.lte]: new Date(end) },
         paid: true,
@@ -59,7 +61,7 @@ export class AdminService {
           include: [
             {
               model: Profile,
-              as: 'client',  // Alias for the Client relationship
+              as: 'client', // Alias for the Client relationship
             },
           ],
         },
@@ -67,7 +69,7 @@ export class AdminService {
     });
 
     const clientPayments = jobs.reduce((acc, job) => {
-      const clientId = job.contract.client.id;  // Access clientId from the contract's client Profile
+      const clientId = job.contract.client.id; // Access clientId from the contract's client Profile
       if (!acc[clientId]) {
         acc[clientId] = 0;
       }
