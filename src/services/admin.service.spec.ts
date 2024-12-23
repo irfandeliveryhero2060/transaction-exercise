@@ -1,10 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AdminService } from './admin.service';
+import { Op } from 'sequelize';
 import { getModelToken } from '@nestjs/sequelize';
+
+import { AdminService } from './admin.service';
 import { Job } from '../model/job.model';
 import { Contract } from '../model/contract.model';
 import { Profile } from '../model/profile.model';
-import { Op } from 'sequelize';
 
 describe('AdminService', () => {
   let adminService: AdminService;

@@ -1,11 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { JobsService } from './job.service';
 import { getModelToken } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
+import { Op } from 'sequelize';
+
+import { JobsService } from './job.service';
 import { Job } from '../model/job.model';
 import { Profile } from '../model/profile.model';
 import { Contract } from '../model/contract.model';
-import { Op } from 'sequelize';
 
 describe('JobsService', () => {
   let jobsService: JobsService;

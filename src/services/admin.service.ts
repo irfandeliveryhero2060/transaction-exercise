@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/sequelize';
+import { Op } from 'sequelize';
+
 import { Job } from '../model/job.model';
 import { Profile } from '../model/profile.model';
-import { Op } from 'sequelize';
 import { Contract } from '../model/contract.model';
-import { InjectModel } from '@nestjs/sequelize';
 
 @Injectable()
 export class AdminService {

@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { Profile } from '../model/profile.model';
-import { Job } from '../model/job.model';
-import { Contract } from '../model/contract.model';
 import { InjectModel } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { Op } from 'sequelize';
+
+import { Profile } from '../model/profile.model';
+import { Job } from '../model/job.model';
+import { Contract } from '../model/contract.model';
 
 @Injectable()
 export class BalancesService {

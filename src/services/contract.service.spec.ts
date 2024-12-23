@@ -1,9 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { getModelToken } from '@nestjs/sequelize';
+import { Op } from 'sequelize';
+
 import { ContractsService } from './contract.service';
 import { Contract } from '../model/contract.model';
 import { Profile } from '../model/profile.model';
-import { getModelToken } from '@nestjs/sequelize';
-import { Op } from 'sequelize';
 
 describe('ContractsService', () => {
   let contractsService: ContractsService;

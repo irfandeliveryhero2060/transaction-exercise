@@ -1,11 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BalancesService } from './balance.service';
-import { getModelToken } from '@nestjs/sequelize';
+import { Op } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
+import { getModelToken } from '@nestjs/sequelize';
+
+import { BalancesService } from './balance.service';
 import { Profile } from '../model/profile.model';
 import { Contract } from '../model/contract.model';
 import { Job } from '../model/job.model';
-import { Op } from 'sequelize';
 
 describe('BalancesService', () => {
   let balancesService: BalancesService;
