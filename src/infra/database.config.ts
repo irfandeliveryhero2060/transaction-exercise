@@ -3,6 +3,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { Profile } from './model/profile.model';
 import { Contract } from './model/contract.model';
 import { Job } from './model/job.model';
+import { Sequelize } from 'sequelize-typescript';
 
 //todo: read from env
 @Module({
@@ -13,11 +14,21 @@ import { Job } from './model/job.model';
       port:  5432,
       username: 'postgres',
       password:  'postgres',
-      database: process.env.DB_NAME,
+      database: 'task-trader-db',
       autoLoadModels: true, // Automatically load models
-      synchronize: true // Sync database schema (use with caution in production)
+      synchronize: true, // Sync database schema (use with caution in production)
     }),
     SequelizeModule.forFeature([Profile, Contract, Job]),
+  ],
+  providers: [
+    {
+      provide: 'SEQUELIZE_SYNC',
+      useFactory: async (sequelize: Sequelize) => {
+        // Force sync the database when the app starts
+        // await sequelize.sync({ force: true });
+      },
+      inject: [Sequelize],  // Inject Sequelize instance
+    },
   ],
 })
 export class DatabaseModule {}

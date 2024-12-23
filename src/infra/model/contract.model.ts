@@ -13,6 +13,12 @@ export class Contract extends Model {
   @Column
   ContractorId: number;
 
+  @Column
+  terms: string;
+
+  @Column
+  status: string;
+
   @BelongsTo(() => Profile, 'ClientId')
   client: Profile;
 
