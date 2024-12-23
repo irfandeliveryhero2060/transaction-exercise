@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Op } from 'sequelize';
 import { InjectModel } from '@nestjs/sequelize';
 
@@ -17,7 +17,10 @@ export class ContractsService {
       where: { id },
     });
     if (!contract) {
-      throw new Error('Contract not found or does not belong to user');
+      throw new HttpException(
+        'Contract not found or does not belong to user',
+        HttpStatus.NOT_FOUND,
+      );
     }
     return contract;
   }

@@ -22,7 +22,10 @@ export class JobsService {
       include: [
         {
           model: Contract,
-          where: { ClientId: userId, status: { [Op.ne]: 'terminated' } }, // Filtering the Contract model's ClientId field
+          where: {
+            [Op.or]: [{ ClientId: userId }, { ContractorId: userId }],
+            status: { [Op.ne]: 'terminated' },
+          },
         },
       ],
     });
@@ -82,7 +85,7 @@ export class JobsService {
       );
 
       if (!contractor) {
-        throw new Error('Contractor not found');
+        throw new HttpException('Contractor not found', HttpStatus.NOT_FOUND);
       }
 
       // Update the balances and set the job as paid within the transaction
@@ -94,6 +97,7 @@ export class JobsService {
       await contractor.save({ transaction });
 
       job.paid = true;
+      job.paymentDate = new Date();
       await job.save({ transaction });
 
       // Commit the transaction if everything is successful
