@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
+import { Sequelize } from 'sequelize-typescript';
 import { ConfigService } from '@nestjs/config';
+
 import { Profile } from 'src/model/profile.model';
 import { Contract } from 'src/model/contract.model';
 import { Job } from 'src/model/job.model';
-import { Sequelize } from 'sequelize-typescript';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { Sequelize } from 'sequelize-typescript';
     {
       provide: 'SEQUELIZE_SYNC',
       useFactory: async (sequelize: Sequelize) => {
+        // TODO: update it, can be removed
         // Force sync the database when the app starts
         // await sequelize.sync({ force: true });
         // console.log('db name', process.env.DB_NAME)

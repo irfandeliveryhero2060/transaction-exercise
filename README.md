@@ -5,7 +5,7 @@
 [circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
 [circleci-url]: https://circleci.com/gh/nestjs/nest
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
+  <p align="center">Developed using progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
     <p align="center">
 <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
 <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
@@ -24,7 +24,17 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Backend task implemented using nest js
+
+## Tools & Technologies
+- [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- Nodejs
+- Javascript/Typescript
+- Postgres
+- docker
+- jest
+
+
 
 ## Project setup
 
@@ -34,7 +44,15 @@ $ npm install
 
 ## Compile and run the project
 
+## Running the app
+- Create .env file and set environment variables. Please check .env.example file for reference. For db name, you can check [docker-compose](https://github.com/Irfanbsse2060/e-commerce/blob/main/docker-compose.yml) file as well.
+
+
 ```bash
+# spin up db using docker
+$ npm run db:dev:up
+
+
 # development
 $ npm run start
 
@@ -46,6 +64,11 @@ $ npm run start:prod
 ```
 
 ## Run tests
+
+For testing, I prefer to follow testing pyramid, more unit tests and less e2e tests.
+In unit testings, I have tried to covered most of the cases in services. The project has e2e setup as well.
+So we can easily add it and to cover it.
+
 
 ```bash
 # unit tests
@@ -71,29 +94,48 @@ $ mau deploy
 
 With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
 
-## Resources
 
-Check out a few resources that may come in handy when working with NestJS:
+# Task description
+## APIs To Implement
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Below is a list of the required API's for the application.
 
-## Support
+1. **_GET_** `/contracts/:id` - This API is broken 😵! it should return the contract only if it belongs to the profile calling. better fix that!
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+1. **_GET_** `/contracts` - Returns a list of contracts belonging to a user (client or contractor), the list should only contain non terminated contracts.
 
-## Stay in touch
+1. **_GET_** `/jobs/unpaid` - Get all unpaid jobs for a user (**_either_** a client or contractor), for **_active contracts only_**.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+1. **_POST_** `/jobs/:job_id/pay` - Pay for a job, a client can only pay if his balance >= the amount to pay. The amount should be moved from the client's balance to the contractor balance.
 
-## License
+1. **_POST_** `/balances/deposit/:userId` - Deposits money into the the the balance of a client, a client can't deposit more than 25% his total of jobs to pay. (at the deposit moment)
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+1. **_GET_** `/admin/best-profession?start=<date>&end=<date>` - Returns the profession that earned the most money (sum of jobs paid) for any contactor that worked in the query time range.
+
+1. **_GET_** `/admin/best-clients?start=<date>&end=<date>&limit=<integer>` - returns the clients the paid the most for jobs in the query time period. limit query parameter should be applied, default limit is 2.
+
+```
+ [
+    {
+        "id": 1,
+        "fullName": "Reece Moyer",
+        "paid" : 100.3
+    },
+    {
+        "id": 200,
+        "fullName": "Debora Martin",
+        "paid" : 99
+    },
+    {
+        "id": 22,
+        "fullName": "Debora Martin",
+        "paid" : 21
+    }
+]
+```
+
+## Going Above and Beyond the Requirements
+
+Given the time expectations of this exercise, we don't expect anyone to submit anything super fancy, but if you find yourself with extra time, any extra credit item(s) that showcase your unique strengths would be awesome! 🙌
+
+It would be great for example if you'd write some unit test / simple frontend demostrating calls to your fresh APIs.

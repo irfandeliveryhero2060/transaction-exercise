@@ -8,7 +8,7 @@ import {
 import { Contract } from './contract.model';
 
 @Table({
-  timestamps: false, // Disable auto-handling of createdAt and updatedAt
+  timestamps: false,
 })
 export class Job extends Model {
   @ForeignKey(() => Contract)
@@ -16,7 +16,7 @@ export class Job extends Model {
   ContractId: number;
 
   @BelongsTo(() => Contract)
-  contract: Contract; // This will ensure the relationship is defined in the Job model
+  contract: Contract;
 
   @Column
   description: string;

@@ -8,11 +8,3 @@ services:
       POSTGRES_DB: task-trader-db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-  test-db:
-    image: postgres:latest
-    ports:
-      - "5433:5432"
-    environment:
-      POSTGRES_DB: test-db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres

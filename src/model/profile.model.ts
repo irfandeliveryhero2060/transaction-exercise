@@ -2,7 +2,7 @@ import { Column, Model, Table, HasMany } from 'sequelize-typescript';
 import { Contract } from './contract.model'; // Ensure the correct path
 
 @Table({
-  timestamps: false, // Disable auto-handling of createdAt and updatedAt
+  timestamps: false,
 })
 export class Profile extends Model {
   @Column

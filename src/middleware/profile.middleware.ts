@@ -1,10 +1,11 @@
+import { Request, Response, NextFunction } from 'express';
 import {
   Injectable,
   NestMiddleware,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Profile } from 'src/model/profile.model'; // Your profile model
-import { Request, Response, NextFunction } from 'express';
+
+import { Profile } from 'src/model/profile.model';
 
 @Injectable()
 export class GetProfileMiddleware implements NestMiddleware {

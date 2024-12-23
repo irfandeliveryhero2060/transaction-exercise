@@ -10,7 +10,7 @@ import { Profile } from './profile.model';
 import { Job } from './job.model';
 
 @Table({
-  timestamps: false, // Disable auto-handling of createdAt and updatedAt
+  timestamps: false,
 })
 export class Contract extends Model {
   @ForeignKey(() => Profile)
@@ -31,9 +31,8 @@ export class Contract extends Model {
   client: Profile;
 
   @BelongsTo(() => Profile, 'ContractorId')
-  contractor: Profile; // This establishes the relationship to Contractor
+  contractor: Profile;
 
-  // Add this to establish a one-to-many relationship with Job
   @HasMany(() => Job)
-  jobs: Job[]; // Now each contract can have many jobs
+  jobs: Job[];
 }
