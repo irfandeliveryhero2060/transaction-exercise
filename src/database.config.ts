@@ -29,10 +29,8 @@ import { Job } from 'src/model/job.model';
     {
       provide: 'SEQUELIZE_SYNC',
       useFactory: async (sequelize: Sequelize) => {
-        // TODO: update it, can be removed
-        // Force sync the database when the app starts
-        // await sequelize.sync({ force: true });
-        // console.log('db name', process.env.DB_NAME)
+        // TODO: update for production case
+        await sequelize.sync({ force: true });
       },
       inject: [Sequelize],
     },

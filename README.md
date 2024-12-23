@@ -56,6 +56,9 @@ $ npm run db:dev:up
 # development
 $ npm run start
 
+# Seed data into db
+$ npm run seed
+
 # watch mode
 $ npm run start:dev
 
