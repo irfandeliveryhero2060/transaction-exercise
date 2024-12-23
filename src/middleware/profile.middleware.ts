@@ -3,7 +3,7 @@ import {
   NestMiddleware,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Profile } from './../model/profile.model'; // Your profile model
+import { Profile } from 'src/model/profile.model'; // Your profile model
 import { Request, Response, NextFunction } from 'express';
 
 @Injectable()

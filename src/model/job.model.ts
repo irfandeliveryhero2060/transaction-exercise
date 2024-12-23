@@ -1,5 +1,5 @@
 import { BelongsTo, Column, ForeignKey, Model, Table } from 'sequelize-typescript';
-import { Contract } from './contract.model';
+import { Contract } from 'src/model/contract.model';
 
 @Table({
   timestamps: false, // Disable auto-handling of createdAt and updatedAt

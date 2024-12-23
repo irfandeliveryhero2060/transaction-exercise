@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Request, UseGuards } from '@nestjs/common';
-import { ContractsService } from '../services/contract.service';
-import { ContractOwnerGuard } from 'src/infra/guards/contract.own.gaurd';
+import { ContractsService } from 'src/services/contract.service';
+import { ContractOwnerGuard } from 'src/guards/contract.own.gaurd';
 
 @Controller('contracts')
 export class ContractsController {

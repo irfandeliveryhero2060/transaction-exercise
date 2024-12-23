@@ -1,6 +1,7 @@
-import { Op } from 'sequelize';
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
-import { Contract } from './../model/contract.model';
+import { Op } from 'sequelize';
+
+import { Contract } from 'src/model/contract.model';
 
 @Injectable()
 export class ContractOwnerGuard implements CanActivate {

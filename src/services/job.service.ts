@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { Job } from '../model/job.model';
-import { Profile } from '../model/profile.model';
+import { Job } from 'src/model/job.model';
+import { Profile } from 'src/model/profile.model';
 import { InjectModel } from '@nestjs/sequelize';
-import { Contract } from "src/infra/model/contract.model";
+import { Contract } from "src/model/contract.model";
 import { Op } from "sequelize";
 
 @Injectable()
