@@ -6,7 +6,14 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { AdminService } from 'src/services/admin.service';
-import { IsDateString, IsInt, IsNotEmpty, IsOptional, IsString, Min } from "class-validator";
+import {
+  IsDateString,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 class BestProfessionQueryDto {
