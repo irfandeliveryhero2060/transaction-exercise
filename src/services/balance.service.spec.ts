@@ -1,32 +1,29 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BalancesService } from './balance.service';
+import { getModelToken } from '@nestjs/sequelize';
+import { Sequelize } from 'sequelize-typescript';
 import { Profile } from '../model/profile.model';
 import { Contract } from '../model/contract.model';
 import { Job } from '../model/job.model';
-import { Sequelize } from 'sequelize-typescript';
-import { getModelToken } from '@nestjs/sequelize';
 import { Op } from 'sequelize';
 
 describe('BalancesService', () => {
   let balancesService: BalancesService;
   let profileModel: typeof Profile;
-  let contractModel: typeof Contract;
   let sequelize: Sequelize;
 
-  // Mock data
-  const mockProfile = { id: 1, balance: 1000 };
-  const mockContract = {
-    id: 1,
-    ClientId: 1,
-    ContractorId: 2,
-    jobs: [{ price: 200, paid: false }],
+  const mockProfileModel = {
+    findByPk: jest.fn(),
   };
 
-  // Mock transaction and methods
-  const mockTransaction = {
-    commit: jest.fn(),
-    rollback: jest.fn(),
+  const mockSequelize = {
+    transaction: jest.fn(() => ({
+      commit: jest.fn(),
+      rollback: jest.fn(),
+    })),
   };
+
+  const mockTransaction = mockSequelize.transaction();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -34,91 +31,121 @@ describe('BalancesService', () => {
         BalancesService,
         {
           provide: getModelToken(Profile),
-          useValue: {
-            findByPk: jest.fn().mockResolvedValue(mockProfile),
-          },
-        },
-        {
-          provide: getModelToken(Contract),
-          useValue: {
-            findAll: jest.fn().mockResolvedValue([mockContract]),
-          },
+          useValue: mockProfileModel,
         },
         {
           provide: Sequelize,
-          useValue: {
-            transaction: jest.fn().mockResolvedValue(mockTransaction),
-            addModels: jest.fn(),
-          },
+          useValue: mockSequelize,
         },
       ],
     }).compile();
 
     balancesService = module.get<BalancesService>(BalancesService);
     profileModel = module.get<typeof Profile>(getModelToken(Profile));
-    contractModel = module.get<typeof Contract>(getModelToken(Contract));
     sequelize = module.get<Sequelize>(Sequelize);
-
-    // Initialize models with Sequelize instance (important for Sequelize ORM)
-    sequelize.addModels([Profile, Contract, Job]); // Ensure models are added
   });
 
   it('should be defined', () => {
     expect(balancesService).toBeDefined();
   });
 
-  it('should deposit balance and update client profile', async () => {
-    const updatedProfile = await balancesService.depositBalance(1, 50);
+  describe('depositBalance', () => {
+    it('should successfully deposit balance for a user', async () => {
+      const mockContracts = [
+        {
+          id: 1,
+          jobs: [{ id: 1, price: 100, paid: false }],
+        },
+      ];
+      const mockClient = { id: 1, balance: 50, save: jest.fn() };
 
-    expect(updatedProfile).toEqual(mockProfile);
-    expect(profileModel.findByPk).toHaveBeenCalledWith(1, {
-      transaction: mockTransaction,
+      jest
+        .spyOn(Contract, 'findAll')
+        .mockResolvedValueOnce(mockContracts as any);
+      jest
+        .spyOn(profileModel, 'findByPk')
+        .mockResolvedValueOnce(mockClient as any);
+      jest
+        .spyOn(sequelize, 'transaction')
+        .mockResolvedValueOnce(mockTransaction as any);
+
+      const result = await balancesService.depositBalance(1, 25);
+
+      expect(result).toEqual(mockClient);
+      expect(Contract.findAll).toHaveBeenCalledWith({
+        where: {
+          [Op.or]: [{ ClientId: 1 }, { ContractorId: 1 }],
+        },
+        include: {
+          model: Job,
+          required: true,
+          where: { paid: false },
+        },
+        transaction: mockTransaction,
+      });
+      expect(profileModel.findByPk).toHaveBeenCalledWith(1, {
+        transaction: mockTransaction,
+      });
+      expect(mockClient.balance).toBe(75); // Balance updated
+      expect(mockClient.save).toHaveBeenCalledWith({
+        transaction: mockTransaction,
+      });
+      expect(mockTransaction.commit).toHaveBeenCalled();
     });
-    expect(contractModel.findAll).toHaveBeenCalledWith({
-      where: {
-        [Op.or]: [{ ClientId: 1 }, { ContractorId: 1 }],
-      },
-      include: {
-        model: Job,
-        required: true,
-        where: { paid: false },
-      },
-      transaction: mockTransaction,
+
+    it('should throw an error if no contracts are found', async () => {
+      jest.spyOn(Contract, 'findAll').mockResolvedValueOnce([]);
+      jest
+        .spyOn(sequelize, 'transaction')
+        .mockResolvedValueOnce(mockTransaction as any);
+
+      await expect(balancesService.depositBalance(1, 25)).rejects.toThrow(
+        'No contracts found for this user',
+      );
+      expect(mockTransaction.rollback).toHaveBeenCalled();
     });
-    expect(mockTransaction.commit).toHaveBeenCalled();
-  });
 
-  it('should throw error if no contracts found', async () => {
-    jest.spyOn(contractModel, 'findAll').mockResolvedValueOnce([]); // Mock no contracts found
+    it('should throw an error if the deposit exceeds 25% of unpaid jobs total', async () => {
+      const mockContracts = [
+        {
+          id: 1,
+          jobs: [{ id: 1, price: 100, paid: false }],
+        },
+      ];
 
-    await expect(balancesService.depositBalance(1, 50)).rejects.toThrowError(
-      'No contracts found for this user',
-    );
-    expect(mockTransaction.rollback).toHaveBeenCalled();
-  });
+      jest
+        .spyOn(Contract, 'findAll')
+        .mockResolvedValueOnce(mockContracts as any);
+      jest
+        .spyOn(sequelize, 'transaction')
+        .mockResolvedValueOnce(mockTransaction as any);
 
-  it('should throw error if deposit exceeds max allowed amount', async () => {
-    const contractWithJobs = {
-      ...mockContract,
-      jobs: [{ price: 1000, paid: false }],
-    };
+      await expect(balancesService.depositBalance(1, 30)).rejects.toThrow(
+        'Deposit cannot exceed 25% of the unpaid jobs total.',
+      );
+      expect(mockTransaction.rollback).toHaveBeenCalled();
+    });
 
-    // @ts-ignore
-    jest
-      .spyOn(contractModel, 'findAll')
-      .mockResolvedValueOnce([contractWithJobs]); // Mock a contract with large unpaid jobs
-    await expect(balancesService.depositBalance(1, 300)).rejects.toThrowError(
-      'Deposit cannot exceed 25% of the unpaid jobs total.',
-    );
-    expect(mockTransaction.rollback).toHaveBeenCalled();
-  });
+    it('should throw an error if the client is not found', async () => {
+      const mockContracts = [
+        {
+          id: 1,
+          jobs: [{ id: 1, price: 100, paid: false }],
+        },
+      ];
 
-  it('should throw error if client not found', async () => {
-    jest.spyOn(profileModel, 'findByPk').mockResolvedValueOnce(null); // Mock client not found
+      jest
+        .spyOn(Contract, 'findAll')
+        .mockResolvedValueOnce(mockContracts as any);
+      jest.spyOn(profileModel, 'findByPk').mockResolvedValueOnce(null);
+      jest
+        .spyOn(sequelize, 'transaction')
+        .mockResolvedValueOnce(mockTransaction as any);
 
-    await expect(balancesService.depositBalance(1, 50)).rejects.toThrowError(
-      'Client not found',
-    );
-    expect(mockTransaction.rollback).toHaveBeenCalled();
+      await expect(balancesService.depositBalance(1, 25)).rejects.toThrow(
+        'Client not found',
+      );
+      expect(mockTransaction.rollback).toHaveBeenCalled();
+    });
   });
 });

@@ -12,12 +12,8 @@ export class JobsController {
   }
 
   @Post(':job_id/pay')
-  async payJob(
-    @Request() req,
-    @Param('job_id') jobId: number,
-    @Body() paymentDto: { amount: number },
-  ) {
+  async payJob(@Request() req, @Param('job_id') jobId: number) {
     const userProfile = req.profile;
-    return this.jobsService.payForJob(jobId, paymentDto.amount, userProfile.id);
+    return this.jobsService.payForJob(jobId, userProfile.id);
   }
 }

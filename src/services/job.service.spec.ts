@@ -15,7 +15,7 @@ describe('JobsService', () => {
 
   const mockJobModel = {
     findAll: jest.fn(),
-    findByPk: jest.fn(),
+    findOne: jest.fn(),
   };
 
   const mockProfileModel = {
@@ -89,31 +89,44 @@ describe('JobsService', () => {
 
   describe('payForJob', () => {
     it('should successfully pay for a job', async () => {
-      const mockJob = { id: 1, paid: false, ContractId: 2, save: jest.fn() };
+      const mockJob = {
+        id: 1,
+        paid: false,
+        price: 50,
+        contract: { ContractorId: 2 },
+        save: jest.fn(),
+      };
       const mockClient = { id: 1, balance: 100, save: jest.fn() };
       const mockContractor = { id: 2, balance: 50, save: jest.fn() };
 
       jest
         .spyOn(sequelize, 'transaction')
         .mockResolvedValueOnce(mockTransaction as any);
-      jest.spyOn(jobModel, 'findByPk').mockResolvedValueOnce(mockJob as any);
+      jest.spyOn(jobModel, 'findOne').mockResolvedValueOnce(mockJob as any);
       jest
         .spyOn(profileModel, 'findByPk')
         .mockResolvedValueOnce(mockClient as any) // First call: Client
         .mockResolvedValueOnce(mockContractor as any); // Second call: Contractor
 
-      const result = await jobsService.payForJob(1, 50, 1);
+      const result = await jobsService.payForJob(1, 1);
 
       expect(result).toEqual(mockJob);
-      expect(jobModel.findByPk).toHaveBeenCalledWith(1, {
+      expect(jobModel.findOne).toHaveBeenCalledWith({
+        where: { id: 1, paid: false },
         transaction: mockTransaction,
+        include: [
+          {
+            model: Contract,
+            where: { ClientId: 1, status: { [Op.ne]: 'terminated' } },
+          },
+        ],
       });
       expect(profileModel.findByPk).toHaveBeenCalledWith(1, {
         transaction: mockTransaction,
-      }); // Client
+      });
       expect(profileModel.findByPk).toHaveBeenCalledWith(2, {
         transaction: mockTransaction,
-      }); // Contractor
+      });
       expect(mockClient.balance).toBe(50); // Client balance updated
       expect(mockContractor.balance).toBe(100); // Contractor balance updated
       expect(mockClient.save).toHaveBeenCalledWith({
@@ -133,46 +146,58 @@ describe('JobsService', () => {
       jest
         .spyOn(sequelize, 'transaction')
         .mockResolvedValueOnce(mockTransaction as any);
-      jest.spyOn(jobModel, 'findByPk').mockResolvedValueOnce(null);
+      jest.spyOn(jobModel, 'findOne').mockResolvedValueOnce(null);
 
-      await expect(jobsService.payForJob(1, 50, 1)).rejects.toThrow(
+      await expect(jobsService.payForJob(1, 1)).rejects.toThrow(
         'Job not found or does not belong to the user',
       );
       expect(mockTransaction.rollback).toHaveBeenCalled(); // Transaction rolled back
     });
 
     it('should throw an error if the client has insufficient balance', async () => {
-      const mockJob = { id: 1, paid: false, ContractId: 2, save: jest.fn() };
-      const mockClient = { id: 1, balance: 30, save: jest.fn() };
+      const mockJob = {
+        id: 1,
+        paid: false,
+        price: 100,
+        contract: { ContractorId: 2 },
+        save: jest.fn(),
+      };
+      const mockClient = { id: 1, balance: 50, save: jest.fn() };
 
       jest
         .spyOn(sequelize, 'transaction')
         .mockResolvedValueOnce(mockTransaction as any);
-      jest.spyOn(jobModel, 'findByPk').mockResolvedValueOnce(mockJob as any);
+      jest.spyOn(jobModel, 'findOne').mockResolvedValueOnce(mockJob as any);
       jest
         .spyOn(profileModel, 'findByPk')
         .mockResolvedValueOnce(mockClient as any);
 
-      await expect(jobsService.payForJob(1, 50, 1)).rejects.toThrow(
+      await expect(jobsService.payForJob(1, 1)).rejects.toThrow(
         'Insufficient balance',
       );
       expect(mockTransaction.rollback).toHaveBeenCalled(); // Transaction rolled back
     });
 
     it('should throw an error if the contractor is not found', async () => {
-      const mockJob = { id: 1, paid: false, ContractId: 2, save: jest.fn() };
+      const mockJob = {
+        id: 1,
+        paid: false,
+        price: 50,
+        contract: { ContractorId: 2 },
+        save: jest.fn(),
+      };
       const mockClient = { id: 1, balance: 100, save: jest.fn() };
 
       jest
         .spyOn(sequelize, 'transaction')
         .mockResolvedValueOnce(mockTransaction as any);
-      jest.spyOn(jobModel, 'findByPk').mockResolvedValueOnce(mockJob as any);
+      jest.spyOn(jobModel, 'findOne').mockResolvedValueOnce(mockJob as any);
       jest
         .spyOn(profileModel, 'findByPk')
-        .mockResolvedValueOnce(mockClient as any) // Client
+        .mockResolvedValueOnce(mockClient as any) // Client found
         .mockResolvedValueOnce(null); // Contractor not found
 
-      await expect(jobsService.payForJob(1, 50, 1)).rejects.toThrow(
+      await expect(jobsService.payForJob(1, 1)).rejects.toThrow(
         'Contractor not found',
       );
       expect(mockTransaction.rollback).toHaveBeenCalled(); // Transaction rolled back

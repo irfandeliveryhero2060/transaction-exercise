@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { Job } from '../model/job.model';
 import { Profile } from '..//model/profile.model';
 import { InjectModel } from '@nestjs/sequelize';
@@ -26,38 +26,67 @@ export class JobsService {
     });
   }
 
-  async payForJob(jobId: number, amount: number, userId: number): Promise<Job> {
+  async payForJob(jobId: number, userId: number): Promise<Job> {
     // Start a transaction
     const transaction = await this.sequelize.transaction();
 
     try {
       // Fetch the job and related contract within the transaction
-      const job = await this.jobModel.findByPk(jobId, { transaction });
+      const job = await this.jobModel.findOne({
+        where: {
+          id: jobId, // Use the primary key field name here
+          paid: false, // Add the paid condition here
+        },
+        transaction,
+        include: [
+          {
+            model: Contract,
+            where: {
+              ClientId: userId,
+              status: { [Op.ne]: 'terminated' }, // Filtering the Contract model's ClientId field
+            },
+          },
+        ],
+      });
+      // const job = await this.jobModel.findByPk(jobId, { transaction });
       if (!job) {
-        throw new Error('Job not found or does not belong to the user');
+        throw new HttpException(
+          'Job not found or does not belong to the user',
+          HttpStatus.NOT_FOUND,
+        );
       }
 
       // Fetch the client and contractor profiles within the transaction
       const client = await this.profileModel.findByPk(userId, { transaction });
       if (!client) {
-        throw new Error('Client not found');
+        throw new HttpException(
+          'Client not found',
+          HttpStatus.NOT_FOUND,
+        );
       }
 
-      if (client.balance < amount) {
-        throw new Error('Insufficient balance');
+      if (client.balance < job.price) {
+        throw new HttpException(
+          'Insufficient balance',
+          HttpStatus.BAD_REQUEST,
+        );
       }
 
       // Get the contractor profile based on ContractId (using job.ContractId)
-      const contractor = await this.profileModel.findByPk(job.ContractId, {
-        transaction,
-      });
+      const contractor = await this.profileModel.findByPk(
+        job.contract.ContractorId,
+        {
+          transaction,
+        },
+      );
+
       if (!contractor) {
         throw new Error('Contractor not found');
       }
 
       // Update the balances and set the job as paid within the transaction
-      client.balance -= amount;
-      contractor.balance += amount;
+      client.balance -= job.price;
+      contractor.balance += job.price;
 
       // Save client, contractor, and job within the transaction
       await client.save({ transaction });
