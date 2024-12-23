@@ -1,7 +1,9 @@
-import { Column, ForeignKey, Model, Table } from 'sequelize-typescript';
+import { Column, ForeignKey, Model, Table, BelongsTo } from 'sequelize-typescript';
 import { Profile } from './profile.model';
 
-@Table
+@Table({
+  timestamps: false, // Disable auto-handling of createdAt and updatedAt
+})
 export class Contract extends Model {
   @ForeignKey(() => Profile)
   @Column
@@ -11,9 +13,9 @@ export class Contract extends Model {
   @Column
   ContractorId: number;
 
-  @Column
-  terms: string;
+  @BelongsTo(() => Profile, 'ClientId')
+  client: Profile;
 
-  @Column
-  status: string;
+  @BelongsTo(() => Profile, 'ContractorId')
+  contractor: Profile;  // This establishes the relationship to Contractor
 }

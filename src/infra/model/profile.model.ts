@@ -1,6 +1,9 @@
-import { Column, Model, Table } from 'sequelize-typescript';
+import { Column, Model, Table, HasMany } from 'sequelize-typescript';
+import { Job } from './job.model';  // Ensure correct import path for the Job model
 
-@Table
+@Table({
+  timestamps: false, // Disable auto-handling of createdAt and updatedAt
+})
 export class Profile extends Model {
   @Column
   firstName: string;
@@ -16,4 +19,11 @@ export class Profile extends Model {
 
   @Column
   type: string;
+
+  // Explicitly define the type of clientJobs and contractorJobs
+  @HasMany(() => Job, { foreignKey: 'ClientId' })
+  clientJobs: Job[];
+
+  @HasMany(() => Job, { foreignKey: 'ContractorId' })
+  contractorJobs: Job[];
 }
