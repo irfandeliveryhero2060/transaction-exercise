@@ -1,39 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Op } from 'sequelize';
 import { getModelToken } from '@nestjs/sequelize';
 
 import { AdminService } from './admin.service';
 import { Job } from '../model/job.model';
-import { Contract } from '../model/contract.model';
-import { Profile } from '../model/profile.model';
 
 describe('AdminService', () => {
   let adminService: AdminService;
   let jobModel: typeof Job;
 
-  // Mock Data
-  const mockProfileClient = { id: 1, profession: 'Engineer' };
-  const mockProfileContractor = { id: 2, profession: 'Plumber' };
-  const mockContract = {
-    client: mockProfileClient,
-    contractor: mockProfileContractor,
-  };
-
-  const mockJobs = [
-    {
-      price: 200,
-      paymentDate: '2024-12-01',
-      contract: mockContract,
-    },
-    {
-      price: 300,
-      paymentDate: '2024-12-05',
-      contract: mockContract,
-    },
-  ];
-
   const mockJobModel = {
-    findAll: jest.fn(),
+    sequelize: {
+      query: jest.fn(),
+    },
   };
 
   beforeEach(async () => {
@@ -56,56 +34,45 @@ describe('AdminService', () => {
   });
 
   it('should return the best profession', async () => {
-    jest.spyOn(jobModel, 'findAll').mockResolvedValueOnce(mockJobs as any);
+    const mockResult = [
+      {
+        profession: 'Plumber',
+        total_earnings: 500,
+      },
+    ];
+
+    // Mocking the raw query result to match expected tuple type [resultSet, metadata]
+    jest
+      .spyOn(jobModel.sequelize, 'query')
+      .mockResolvedValueOnce([mockResult, []]);
 
     const result = await adminService.getBestProfession(
       '2024-12-01',
       '2024-12-31',
     );
 
-    expect(result).toEqual(['Plumber', 500]); // Sorted by earnings, the profession with the most earnings first
-    expect(jobModel.findAll).toHaveBeenCalledWith({
-      where: {
-        paymentDate: {
-          [Op.gte]: new Date('2024-12-01'),
-          [Op.lte]: new Date('2024-12-31'),
-        },
-      },
-      include: [
-        {
-          model: Contract,
-          include: [
-            {
-              model: Profile,
-              as: 'client',
-            },
-            {
-              model: Profile,
-              as: 'contractor',
-            },
-          ],
-        },
-      ],
-    });
+    expect(result).toEqual(mockResult[0]); // Should return the best profession with earnings
+    expect(jobModel.sequelize.query).toHaveBeenCalledWith(
+      expect.stringContaining('SELECT'),
+      expect.objectContaining({
+        replacements: { start: '2024-12-01', end: '2024-12-31' },
+        type: expect.any(String),
+      }),
+    );
   });
 
   it('should return the best clients', async () => {
-    const mockClientJobs = [
+    const mockClientResult = [
       {
-        price: 500,
-        paymentDate: '2024-12-01',
-        contract: { client: { id: 1 }, price: 500 },
-      },
-      {
-        price: 1000,
-        paymentDate: '2024-12-05',
-        contract: { client: { id: 1 }, price: 1000 },
+        clientId: 1,
+        totalPayment: 1500,
       },
     ];
 
+    // Mocking the raw query result to match expected tuple type [resultSet, metadata]
     jest
-      .spyOn(jobModel, 'findAll')
-      .mockResolvedValueOnce(mockClientJobs as any);
+      .spyOn(jobModel.sequelize, 'query')
+      .mockResolvedValueOnce([mockClientResult, []]);
 
     const result = await adminService.getBestClients(
       '2024-12-01',
@@ -113,31 +80,18 @@ describe('AdminService', () => {
       1,
     );
 
-    expect(result).toEqual([{ clientId: '1', totalPayment: 1500 }]);
-    expect(jobModel.findAll).toHaveBeenCalledWith({
-      where: {
-        paymentDate: {
-          [Op.gte]: new Date('2024-12-01'),
-          [Op.lte]: new Date('2024-12-31'),
-        },
-        paid: true,
-      },
-      include: [
-        {
-          model: Contract,
-          include: [
-            {
-              model: Profile,
-              as: 'client',
-            },
-          ],
-        },
-      ],
-    });
+    expect(result).toEqual(mockClientResult); // Should return the best client with total payment
+    expect(jobModel.sequelize.query).toHaveBeenCalledWith(
+      expect.stringContaining('SELECT'),
+      expect.objectContaining({
+        replacements: { start: '2024-12-01', end: '2024-12-31', limit: 1 },
+        type: expect.any(String),
+      }),
+    );
   });
 
   it('should handle empty job results for best clients', async () => {
-    jest.spyOn(jobModel, 'findAll').mockResolvedValueOnce([]); // No jobs
+    jest.spyOn(jobModel.sequelize, 'query').mockResolvedValueOnce([[], []]);
 
     const result = await adminService.getBestClients(
       '2024-12-01',
@@ -145,46 +99,20 @@ describe('AdminService', () => {
       1,
     );
 
-    expect(result).toEqual([]);
-    expect(jobModel.findAll).toHaveBeenCalledWith({
-      where: {
-        paymentDate: {
-          [Op.gte]: new Date('2024-12-01'),
-          [Op.lte]: new Date('2024-12-31'),
-        },
-        paid: true,
-      },
-      include: [
-        {
-          model: Contract,
-          include: [
-            {
-              model: Profile,
-              as: 'client',
-            },
-          ],
-        },
-      ],
-    });
+    expect(result).toEqual([]); // Should return empty array if no clients found
   });
 
   it('should return the best clients with limit', async () => {
-    const mockClientJobs = [
+    const mockClientResult = [
       {
-        price: 500,
-        paymentDate: '2024-12-01',
-        contract: { client: { id: 1 }, price: 500 },
-      },
-      {
-        price: 1000,
-        paymentDate: '2024-12-05',
-        contract: { client: { id: 2 }, price: 1000 },
+        clientId: 2,
+        totalPayment: 1000,
       },
     ];
 
     jest
-      .spyOn(jobModel, 'findAll')
-      .mockResolvedValueOnce(mockClientJobs as any);
+      .spyOn(jobModel.sequelize, 'query')
+      .mockResolvedValueOnce([mockClientResult, []]);
 
     const result = await adminService.getBestClients(
       '2024-12-01',
@@ -192,6 +120,6 @@ describe('AdminService', () => {
       1,
     );
 
-    expect(result).toEqual([{ clientId: '2', totalPayment: 1000 }]); // client 2 has the highest total
+    expect(result).toEqual(mockClientResult); // Should return the client with the highest payment
   });
 });

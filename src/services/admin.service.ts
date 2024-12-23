@@ -1,49 +1,47 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Op } from 'sequelize';
+import { QueryTypes } from 'sequelize';
 
 import { Job } from '../model/job.model';
-import { Profile } from '../model/profile.model';
-import { Contract } from '../model/contract.model';
 
 @Injectable()
 export class AdminService {
   constructor(@InjectModel(Job) private jobModel: typeof Job) {}
 
   async getBestProfession(start: string, end: string): Promise<any> {
-    const jobs = await this.jobModel.findAll({
-      where: {
-        paymentDate: { [Op.gte]: new Date(start), [Op.lte]: new Date(end) },
+    const result = await this.jobModel.sequelize.query(
+      `
+    SELECT 
+        p.profession,
+        SUM(j.price) AS total_earnings
+    FROM 
+        "Jobs" j
+    JOIN 
+        "Contracts" c ON j."ContractId" = c.id
+    JOIN 
+        "Profiles" p ON c."ContractorId" = p.id
+    WHERE 
+        j."paymentDate" >= :start
+        AND j."paymentDate" <= :end
+        AND p.type = 'contractor'
+    GROUP BY 
+        p.profession
+    ORDER BY 
+        total_earnings DESC
+    LIMIT 1;
+    `,
+      {
+        replacements: { start, end },
+        type: QueryTypes.SELECT,
       },
-      include: [
-        {
-          model: Contract,
-          include: [
-            {
-              model: Profile,
-              as: 'client', // Alias for the Client relationship
-            },
-            {
-              model: Profile,
-              as: 'contractor', // Alias for the Contractor relationship
-            },
-          ],
-        },
-      ],
-    });
+    );
 
-    const professionEarnings = jobs.reduce((acc, job) => {
-      const profession = job.contract.contractor.profession; // Access the contractor's profession
-      if (!acc[profession]) {
-        acc[profession] = 0;
-      }
-      acc[profession] += job.price;
-      return acc;
-    }, {});
-
-    return Object.entries(professionEarnings).sort(
-      ([, a], [, b]) => Number(b) - Number(a),
-    )[0]; // Explicitly cast a and b to numbers
+    // Return the first (and only) result from the query
+    const flattenedResult = result.flatMap((innerArray) => innerArray);
+    if (flattenedResult.length > 0) {
+      return flattenedResult[0];
+    }
+    throw new HttpException('NOt found', HttpStatus.NOT_FOUND);
   }
 
   async getBestClients(
@@ -51,43 +49,34 @@ export class AdminService {
     end: string,
     limit: number,
   ): Promise<any> {
-    const jobs = await this.jobModel.findAll({
-      where: {
-        paymentDate: { [Op.gte]: new Date(start), [Op.lte]: new Date(end) },
-        paid: true,
+    const result = await this.jobModel.sequelize.query(
+      `
+    SELECT 
+      p.id AS clientId, 
+      SUM(j.price) AS totalPayment
+    FROM 
+      "Jobs" j
+    JOIN 
+      "Contracts" c ON j."ContractId" = c.id
+    JOIN 
+      "Profiles" p ON c."ClientId" = p.id
+    WHERE 
+      j."paymentDate" >= :start
+      AND j."paymentDate" <= :end
+      AND j.paid = true
+      AND p.type = 'client'
+    GROUP BY 
+      p.id
+    ORDER BY 
+      totalPayment DESC
+    LIMIT :limit;
+    `,
+      {
+        replacements: { start, end, limit },
+        type: QueryTypes.SELECT,
       },
-      include: [
-        {
-          model: Contract,
-          include: [
-            {
-              model: Profile,
-              as: 'client', // Alias for the Client relationship
-            },
-          ],
-        },
-      ],
-    });
+    );
 
-    const clientPayments = jobs.reduce((acc, job) => {
-      const clientId = job.contract.client.id; // Access clientId from the contract's client Profile
-      if (!acc[clientId]) {
-        acc[clientId] = 0;
-      }
-      acc[clientId] += job.price;
-      return acc;
-    }, {});
-
-    const sortedClients = Object.entries(clientPayments)
-      .sort(([, a], [, b]) => {
-        // Ensure a and b are treated as numbers
-        return Number(b) - Number(a);
-      })
-      .slice(0, limit);
-
-    return sortedClients.map(([clientId, totalPayment]) => ({
-      clientId,
-      totalPayment,
-    }));
+    return result.flatMap((innerArray) => innerArray);
   }
 }
