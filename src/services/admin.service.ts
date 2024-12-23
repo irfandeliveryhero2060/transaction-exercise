@@ -37,9 +37,8 @@ export class AdminService {
     );
 
     // Return the first (and only) result from the query
-    const flattenedResult = result.flatMap((innerArray) => innerArray);
-    if (flattenedResult.length > 0) {
-      return flattenedResult[0];
+    if (result.length > 0) {
+      return result[0];
     }
     throw new HttpException('NOt found', HttpStatus.NOT_FOUND);
   }
@@ -77,6 +76,6 @@ export class AdminService {
       },
     );
 
-    return result.flatMap((innerArray) => innerArray);
+    return result;
   }
 }

@@ -41,10 +41,10 @@ describe('AdminService', () => {
       },
     ];
 
-    // Mocking the raw query result to match expected tuple type [resultSet, metadata]
     jest
       .spyOn(jobModel.sequelize, 'query')
-      .mockResolvedValueOnce([mockResult, []]);
+      //@ts-ignore
+      .mockResolvedValueOnce(mockResult);
 
     const result = await adminService.getBestProfession(
       '2024-12-01',
@@ -69,10 +69,10 @@ describe('AdminService', () => {
       },
     ];
 
-    // Mocking the raw query result to match expected tuple type [resultSet, metadata]
     jest
       .spyOn(jobModel.sequelize, 'query')
-      .mockResolvedValueOnce([mockClientResult, []]);
+      //@ts-ignore
+      .mockResolvedValueOnce(mockClientResult);
 
     const result = await adminService.getBestClients(
       '2024-12-01',
@@ -91,7 +91,10 @@ describe('AdminService', () => {
   });
 
   it('should handle empty job results for best clients', async () => {
-    jest.spyOn(jobModel.sequelize, 'query').mockResolvedValueOnce([[], []]);
+    jest
+      .spyOn(jobModel.sequelize, 'query')
+      //@ts-ignore
+      .mockResolvedValueOnce([]);
 
     const result = await adminService.getBestClients(
       '2024-12-01',
@@ -112,7 +115,8 @@ describe('AdminService', () => {
 
     jest
       .spyOn(jobModel.sequelize, 'query')
-      .mockResolvedValueOnce([mockClientResult, []]);
+      //@ts-ignore
+      .mockResolvedValueOnce(mockClientResult);
 
     const result = await adminService.getBestClients(
       '2024-12-01',
