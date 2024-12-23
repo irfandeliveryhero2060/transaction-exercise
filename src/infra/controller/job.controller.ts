@@ -5,7 +5,6 @@ import { JobsService } from '../services/job.service';
 export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 
-  //TODO: Read from profile
   @Get('unpaid')
   async getUnpaidJobs(@Request() req) {
     const userProfile = req.profile;

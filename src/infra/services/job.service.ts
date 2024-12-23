@@ -24,7 +24,7 @@ export class JobsService {
 
   async payForJob(jobId: number, amount: number, userId: number): Promise<Job> {
     const job = await this.jobModel.findByPk(jobId);
-    if (!job || job.ContractId !== userId) {
+    if (!job) {
       throw new Error('Job not found or does not belong to the user');
     }
 
