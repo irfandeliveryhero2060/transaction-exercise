@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Op } from 'sequelize';
 import { InjectModel } from '@nestjs/sequelize';
 
-import { Contract } from '../model/contract.model';
+import { Contract, ContractStatus } from '../model/contract.model';
 import { Profile } from '../model/profile.model';
 
 @Injectable()
@@ -29,7 +29,7 @@ export class ContractsService {
     return this.contractModel.findAll({
       where: {
         [Op.or]: [{ ClientId: userId }, { ContractorId: userId }],
-        status: { [Op.ne]: 'terminated' }, // Exclude terminated contracts
+        status: { [Op.ne]: ContractStatus.TERMINATED }, // Exclude terminated contracts
       },
     });
   }

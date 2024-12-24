@@ -5,8 +5,7 @@ import { Op } from 'sequelize';
 
 import { Job } from '../model/job.model';
 import { Profile } from '..//model/profile.model';
-
-import { Contract } from '../model/contract.model';
+import { Contract, ContractStatus } from '../model/contract.model';
 
 @Injectable()
 export class JobsService {
@@ -24,7 +23,7 @@ export class JobsService {
           model: Contract,
           where: {
             [Op.or]: [{ ClientId: userId }, { ContractorId: userId }],
-            status: { [Op.ne]: 'terminated' },
+            status: { [Op.ne]: ContractStatus.TERMINATED },
           },
         },
       ],
@@ -47,7 +46,7 @@ export class JobsService {
             model: Contract,
             where: {
               ClientId: userId,
-              status: { [Op.ne]: 'terminated' },
+              status: { [Op.ne]: ContractStatus.TERMINATED },
             },
           },
         ],

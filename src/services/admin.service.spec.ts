@@ -43,8 +43,7 @@ describe('AdminService', () => {
 
     jest
       .spyOn(jobModel.sequelize, 'query')
-      //@ts-ignore
-      .mockResolvedValueOnce(mockResult);
+      .mockResolvedValueOnce(mockResult as any);
 
     const result = await adminService.getBestProfession(
       '2024-12-01',
@@ -71,8 +70,7 @@ describe('AdminService', () => {
 
     jest
       .spyOn(jobModel.sequelize, 'query')
-      //@ts-ignore
-      .mockResolvedValueOnce(mockClientResult);
+      .mockResolvedValueOnce(mockClientResult as any);
 
     const result = await adminService.getBestClients(
       '2024-12-01',
@@ -80,7 +78,7 @@ describe('AdminService', () => {
       1,
     );
 
-    expect(result).toEqual(mockClientResult); // Should return the best client with total payment
+    expect(result).toEqual(mockClientResult);
     expect(jobModel.sequelize.query).toHaveBeenCalledWith(
       expect.stringContaining('SELECT'),
       expect.objectContaining({
@@ -91,10 +89,7 @@ describe('AdminService', () => {
   });
 
   it('should handle empty job results for best clients', async () => {
-    jest
-      .spyOn(jobModel.sequelize, 'query')
-      //@ts-ignore
-      .mockResolvedValueOnce([]);
+    jest.spyOn(jobModel.sequelize, 'query').mockResolvedValueOnce([] as any);
 
     const result = await adminService.getBestClients(
       '2024-12-01',
@@ -102,7 +97,7 @@ describe('AdminService', () => {
       1,
     );
 
-    expect(result).toEqual([]); // Should return empty array if no clients found
+    expect(result).toEqual([]);
   });
 
   it('should return the best clients with limit', async () => {
@@ -115,8 +110,7 @@ describe('AdminService', () => {
 
     jest
       .spyOn(jobModel.sequelize, 'query')
-      //@ts-ignore
-      .mockResolvedValueOnce(mockClientResult);
+      .mockResolvedValueOnce(mockClientResult as any);
 
     const result = await adminService.getBestClients(
       '2024-12-01',

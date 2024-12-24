@@ -3,7 +3,6 @@ import {
   ForeignKey,
   Model,
   Table,
-  BelongsTo,
   HasMany,
   DataType,
 } from 'sequelize-typescript';
@@ -33,4 +32,10 @@ export class Contract extends Model {
 
   @HasMany(() => Job)
   jobs: Job[];
+}
+
+export enum ContractStatus {
+  NEW = 'new',
+  IN_PROGRESS = 'in_progress',
+  TERMINATED = 'terminated',
 }

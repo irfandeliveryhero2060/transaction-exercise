@@ -3,7 +3,7 @@ import { getModelToken } from '@nestjs/sequelize';
 import { Op } from 'sequelize';
 
 import { ContractsService } from './contract.service';
-import { Contract } from '../model/contract.model';
+import { Contract, ContractStatus } from '../model/contract.model';
 import { Profile } from '../model/profile.model';
 
 describe('ContractsService', () => {
@@ -33,14 +33,14 @@ describe('ContractsService', () => {
         {
           provide: getModelToken(Contract),
           useValue: {
-            findOne: jest.fn().mockResolvedValue(mockContract), // Mock the `findOne` method
-            findAll: jest.fn().mockResolvedValue([mockContract]), // Mock the `findAll` method
+            findOne: jest.fn().mockResolvedValue(mockContract),
+            findAll: jest.fn().mockResolvedValue([mockContract]),
           },
         },
         {
           provide: getModelToken(Profile),
           useValue: {
-            findOne: jest.fn().mockResolvedValue(mockProfile), // Mock the `findOne` method for Profile
+            findOne: jest.fn().mockResolvedValue(mockProfile),
           },
         },
       ],
@@ -75,7 +75,7 @@ describe('ContractsService', () => {
     expect(contractModel.findAll).toHaveBeenCalledWith({
       where: {
         [Op.or]: [{ ClientId: 1 }, { ContractorId: 1 }],
-        status: { [Op.ne]: 'terminated' },
+        status: { [Op.ne]: ContractStatus.TERMINATED },
       },
     });
   });

@@ -40,7 +40,7 @@ export class AdminService {
     if (result.length > 0) {
       return result[0];
     }
-    throw new HttpException('NOt found', HttpStatus.NOT_FOUND);
+    return {};
   }
 
   async getBestClients(
