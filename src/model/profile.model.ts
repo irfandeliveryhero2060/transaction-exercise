@@ -1,17 +1,23 @@
-import { Column, Model, Table, HasMany } from 'sequelize-typescript';
+import { Column, Model, Table, HasMany, DataType } from 'sequelize-typescript';
 import { Contract } from './contract.model'; // Ensure the correct path
 
 @Table({
   timestamps: false,
 })
 export class Profile extends Model {
-  @Column
+  @Column({
+    allowNull: false,
+  })
   firstName: string;
 
-  @Column
+  @Column({
+    allowNull: false,
+  })
   lastName: string;
 
-  @Column
+  @Column({
+    allowNull: false,
+  })
   profession: string;
 
   @Column({
@@ -21,7 +27,10 @@ export class Profile extends Model {
   })
   balance: number;
 
-  @Column
+  @Column({
+    type: DataType.ENUM('client', 'contractor'),
+    allowNull: false,
+  })
   type: string;
 
   // Define the one-to-many relationship: Profile can have many Contracts

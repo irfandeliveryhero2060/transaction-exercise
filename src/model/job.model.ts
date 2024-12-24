@@ -1,6 +1,7 @@
 import {
   BelongsTo,
   Column,
+  DataType,
   ForeignKey,
   Model,
   Table,
@@ -18,13 +19,20 @@ export class Job extends Model {
   @BelongsTo(() => Contract)
   contract: Contract;
 
-  @Column
+  @Column({
+    allowNull: false,
+  })
   description: string;
 
-  @Column
+  @Column({
+    allowNull: false,
+  })
   price: number;
 
-  @Column
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
   paid: boolean;
 
   @Column

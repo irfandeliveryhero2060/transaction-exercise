@@ -5,6 +5,7 @@ import {
   Table,
   BelongsTo,
   HasMany,
+  DataType,
 } from 'sequelize-typescript';
 import { Profile } from './profile.model';
 import { Job } from './job.model';
@@ -24,14 +25,11 @@ export class Contract extends Model {
   @Column
   terms: string;
 
-  @Column
+  @Column({
+    type: DataType.ENUM('new', 'in_progress', 'terminated'),
+    allowNull: false,
+  })
   status: string;
-
-  @BelongsTo(() => Profile, 'ClientId')
-  client: Profile;
-
-  @BelongsTo(() => Profile, 'ContractorId')
-  contractor: Profile;
 
   @HasMany(() => Job)
   jobs: Job[];
