@@ -36,11 +36,10 @@ export class JobsService {
     const transaction = await this.sequelize.transaction();
 
     try {
-      // Fetch the job and related contract within the transaction
       const job = await this.jobModel.findOne({
         where: {
-          id: jobId, // Use the primary key field name here
-          paid: false, // Add the paid condition here
+          id: jobId,
+          paid: false,
         },
         transaction,
         include: [
@@ -48,11 +47,11 @@ export class JobsService {
             model: Contract,
             where: {
               ClientId: userId,
-              status: { [Op.ne]: 'terminated' }, // Filtering the Contract model's ClientId field
+              status: { [Op.ne]: 'terminated' },
             },
           },
         ],
-        lock: transaction.LOCK.UPDATE, // Locking the job and contract rows
+        lock: transaction.LOCK.UPDATE,
       });
 
       if (!job) {
@@ -62,10 +61,10 @@ export class JobsService {
         );
       }
 
-      // Fetch the client profile within the transaction and lock the row
+      // Fetch the client profile
       const client = await this.profileModel.findByPk(userId, {
         transaction,
-        lock: transaction.LOCK.UPDATE, // Locking the client row
+        lock: transaction.LOCK.UPDATE,
       });
       if (!client) {
         throw new HttpException('Client not found', HttpStatus.NOT_FOUND);
@@ -75,12 +74,12 @@ export class JobsService {
         throw new HttpException('Insufficient balance', HttpStatus.BAD_REQUEST);
       }
 
-      // Fetch the contractor profile based on ContractId and lock the row
+      // Fetch the contractor profile
       const contractor = await this.profileModel.findByPk(
         job.contract.ContractorId,
         {
           transaction,
-          lock: transaction.LOCK.UPDATE, // Locking the contractor row
+          lock: transaction.LOCK.UPDATE,
         },
       );
 
@@ -88,24 +87,21 @@ export class JobsService {
         throw new HttpException('Contractor not found', HttpStatus.NOT_FOUND);
       }
 
-      // Update the balances and set the job as paid within the transaction
+      // Update the balances and set the job as paid
       client.balance -= job.price;
       contractor.balance += job.price;
 
-      // Save client, contractor, and job within the transaction
+      // Save client, contractor, and job
       await client.save({ transaction });
       await contractor.save({ transaction });
-
       job.paid = true;
-      job.paymentDate = new Date();
+      job.paymentDate = new Date(); // now date
       await job.save({ transaction });
 
-      // Commit the transaction if everything is successful
       await transaction.commit();
 
       return job;
     } catch (error) {
-      // If anything goes wrong, rollback the transaction
       await transaction.rollback();
       throw error;
     }

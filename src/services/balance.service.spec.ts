@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Op } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { getModelToken } from '@nestjs/sequelize';
 
@@ -75,7 +74,7 @@ describe('BalancesService', () => {
       expect(result).toEqual(mockClient);
       expect(Contract.findAll).toHaveBeenCalledWith({
         where: {
-          [Op.or]: [{ ClientId: 1 }, { ContractorId: 1 }],
+          ClientId: 1,
         },
         include: {
           model: Job,
