@@ -32,6 +32,7 @@ export class Job extends Model {
   @Column({
     type: DataType.BOOLEAN,
     defaultValue: false,
+    allowNull: false,
   })
   paid: boolean;
 

@@ -1,4 +1,4 @@
-import { Controller, Post, Param, Body } from '@nestjs/common';
+import { Controller, Post, Param, Body, ParseIntPipe } from '@nestjs/common';
 import { IsNumber, IsPositive, IsNotEmpty } from 'class-validator';
 import { BalancesService } from 'src/services/balance.service';
 
@@ -15,7 +15,7 @@ export class BalancesController {
 
   @Post('deposit/:userId')
   async depositBalance(
-    @Param('userId') userId: number,
+    @Param('userId', ParseIntPipe) userId: number,
     @Body() depositDto: DepositDto,
   ) {
     return this.balancesService.depositBalance(userId, depositDto.amount);

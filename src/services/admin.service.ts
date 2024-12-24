@@ -52,6 +52,7 @@ export class AdminService {
       `
     SELECT 
       p.id AS clientId, 
+      concat( p."firstName" , ' ',p."lastName") as fullName,
       SUM(j.price) AS totalPayment
     FROM 
       "Jobs" j

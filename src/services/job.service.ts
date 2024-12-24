@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Sequelize } from 'sequelize-typescript';
+import { Transaction } from 'sequelize';
 import { InjectModel } from '@nestjs/sequelize';
 import { Op } from 'sequelize';
 
@@ -31,9 +32,9 @@ export class JobsService {
   }
 
   async payForJob(jobId: number, userId: number): Promise<Job> {
-    // Start a transaction
-    const transaction = await this.sequelize.transaction();
-
+    const transaction = await this.sequelize.transaction({
+      isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE,
+    });
     try {
       const job = await this.jobModel.findOne({
         where: {
@@ -55,7 +56,7 @@ export class JobsService {
 
       if (!job) {
         throw new HttpException(
-          'Job not found or does not belong to the user',
+          'Job not found or already paid',
           HttpStatus.NOT_FOUND,
         );
       }

@@ -85,8 +85,8 @@ describe('JobsService', () => {
           {
             model: Contract,
             where: {
-              ClientId: 1,
               status: { [Op.ne]: ContractStatus.TERMINATED },
+              [Op.or]: [{ ClientId: 1 }, { ContractorId: 1 }],
             },
           },
         ],
@@ -160,7 +160,7 @@ describe('JobsService', () => {
       jest.spyOn(jobModel, 'findOne').mockResolvedValueOnce(null);
 
       await expect(jobsService.payForJob(1, 1)).rejects.toThrow(
-        'Job not found or does not belong to the user',
+        'Job not found or already paid',
       );
       expect(mockTransaction.rollback).toHaveBeenCalled(); // Transaction rolled back
     });

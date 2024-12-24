@@ -58,11 +58,11 @@ const runMigration = async () => {
 
       -- Insert into Job
       INSERT INTO "Jobs" (description, price, paid, "paymentDate", "ContractId") VALUES
-        ('work', 200, NULL, NULL, 1),
-        ('work', 201, NULL, NULL, 2),
-        ('work', 202, NULL, NULL, 3),
-        ('work', 200, NULL, NULL, 4),
-        ('work', 200, NULL, NULL, 7),
+        ('work', 200, FALSE, NULL, 1),
+        ('work', 201, FALSE, NULL, 2),
+        ('work', 202, FALSE, NULL, 3),
+        ('work', 200, FALSE, NULL, 4),
+        ('work', 200, FALSE, NULL, 7),
         ('work', 2020, TRUE, '2020-08-15T19:11:26.737Z', 7),
         ('work', 200, TRUE, '2020-08-15T19:11:26.737Z', 2),
         ('work', 200, TRUE, '2020-08-16T19:11:26.737Z', 3),

@@ -1,7 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
-import { Op } from 'sequelize';
 
 import { Profile } from '../model/profile.model';
 import { Job } from '../model/job.model';
@@ -31,7 +30,10 @@ export class BalancesService {
       });
 
       if (!contracts.length) {
-        throw new Error('No contracts found for this user');
+        throw new HttpException(
+          'No contracts found for this user',
+          HttpStatus.NOT_FOUND,
+        );
       }
 
       // Access jobs directly via contracts
@@ -40,13 +42,16 @@ export class BalancesService {
       const maxDepositAmount = totalToPay * 0.25; //25%
 
       if (amount > maxDepositAmount) {
-        throw new Error(`Deposit cannot exceed 25% of the unpaid jobs total.`);
+        throw new HttpException(
+          'Deposit cannot exceed 25% of the unpaid jobs total.',
+          HttpStatus.BAD_REQUEST,
+        );
       }
 
       // Retrieve the client profile
       const client = await this.profileModel.findByPk(userId, { transaction });
       if (!client) {
-        throw new Error('Client not found');
+        throw new HttpException('Client not found', HttpStatus.NOT_FOUND);
       }
 
       // Update the balance and save
@@ -56,9 +61,13 @@ export class BalancesService {
       await transaction.commit();
 
       return client;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       await transaction.rollback();
-      throw error;
+      throw new HttpException(
+        error.toString(),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }
